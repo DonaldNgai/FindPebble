@@ -1,4 +1,4 @@
-package com.example.donald.pebbleexample;
+package com.example.donald.FindPebble;
 
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
@@ -42,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int VIBRATE_BUTTON = 1;
     private static final int STOP_BUTTON = 2;
 
-    private Button launchButton;
     private Button findButton;
     private Button notificationButton;
     private Button stopButton;
@@ -57,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
+
+        startAppOnClick();
 
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -77,7 +78,9 @@ public class MainActivity extends AppCompatActivity {
                     // Down received?
                     if(dict.getInteger(KEY_BUTTON_DOWN) != null) {
                         textView.setText("Down");
-                        mMediaPlayer.stop();
+                        if (mMediaPlayer.isPlaying()) {
+                            mMediaPlayer.stop();
+                        }
                         v.cancel();
                     }
 
@@ -112,7 +115,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        launchButton = (Button) findViewById(R.id.start_app);
         findButton = (Button) findViewById(R.id.find_button);
         notificationButton = (Button) findViewById(R.id.sendNotification);
         stopButton = (Button) findViewById(R.id.stop_button);
@@ -123,21 +125,6 @@ public class MainActivity extends AppCompatActivity {
                 .getDefaultUri(RingtoneManager.TYPE_RINGTONE);
         mMediaPlayer = new MediaPlayer();
 
-        try {
-            mMediaPlayer.setDataSource(this, alert);
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
     }
@@ -182,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Notification Sent", Toast.LENGTH_LONG).show();
     }
 
-    public void startAppOnClick(View v) {
+    public void startAppOnClick() {
         Context context = getApplicationContext();
 
         if(checkIfConnected()) {
@@ -255,13 +242,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void forceRing(){
-
-
         // Start without a delay
         // Vibrate for 100 milliseconds
         // Sleep for 1000 milliseconds
         long[] pattern = {0, 1000, 500};
         v.vibrate(pattern,0);
+
+        try {
+            mMediaPlayer.reset();
+            mMediaPlayer.setDataSource(this, alert);
+        } catch (IllegalArgumentException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (SecurityException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
 
         if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
             int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
@@ -271,11 +273,20 @@ public class MainActivity extends AppCompatActivity {
             audioManager.setMode(AudioManager.MODE_IN_CALL);
             audioManager.setSpeakerphoneOn(true);
             try {
-                mMediaPlayer.prepare();
-                mMediaPlayer.start();
-            } catch (IOException e) {
+                mMediaPlayer.prepareAsync();
+            } catch (Exception e) {
                 e.printStackTrace();
             }
+
+            //mp3 will be started after completion of preparing...
+            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+
+                @Override
+                public void onPrepared(MediaPlayer player) {
+                    player.start();
+                }
+
+            });
 
         }
     }

@@ -1,4 +1,4 @@
-package com.example.donald.pebbleexample;
+package com.example.donald.FindPebble;
 
 import org.junit.Test;
 

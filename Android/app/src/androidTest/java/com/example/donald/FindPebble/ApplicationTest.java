@@ -1,4 +1,4 @@
-package com.example.donald.pebbleexample;
+package com.example.donald.FindPebble;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
