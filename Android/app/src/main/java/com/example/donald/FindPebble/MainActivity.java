@@ -53,47 +53,58 @@ public class MainActivity extends AppCompatActivity {
     private AudioManager audioManager;
     private Vibrator v;
 
+    private String pebbleData;
+    private String pebbleOpenAppData;
+    private Boolean initialOpen = true;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        Log.d("FindPebble", "onNewIntent called");
+
+        pebbleData = intent.getStringExtra("PEBBLE_DATA");
+        initialOpen = false;
+
+        super.onNewIntent(intent);
+    } // End of onNewIntent(Intent intent)
+
     @Override
     protected void onResume(){
         super.onResume();
+        Intent intent = getIntent();
+        if (initialOpen && pebbleData == null){
+            pebbleOpenAppData = intent.getStringExtra("PEBBLE_DATA");
+            Log.d("YourActivity", "openapp: " + pebbleOpenAppData);
+        }
 
-        startAppOnClick();
-
-        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        if(mDataReceiver == null) {
-            mDataReceiver = new PebbleKit.PebbleDataReceiver(APP_UUID) {
-
-                @Override
-                public void receiveData(Context context, int transactionId, PebbleDictionary dict) {
-                    // Always ACK
-                    PebbleKit.sendAckToPebble(context, transactionId);
-                    Log.i("receiveData", "Got message from Pebble!");
-
-                    // Up received?
-                    if(dict.getInteger(KEY_BUTTON_UP) != null) {
-                        textView.setText("Up");
-                    }
-
-                    // Down received?
-                    if(dict.getInteger(KEY_BUTTON_DOWN) != null) {
-                        textView.setText("Down");
-                        if (mMediaPlayer.isPlaying()) {
-                            mMediaPlayer.stop();
-                        }
-                        v.cancel();
-                    }
-
-                    //Select Received
-                    if (dict.getInteger(KEY_BUTTON_SELECT) != null){
-                        textView.setText("Select");
-                        forceRing();
-                    }
+        //If app was opened without watch or if app is still open
+        if (pebbleOpenAppData == null || pebbleOpenAppData.isEmpty()){
+            if (initialOpen){
+                startAppOnClick();
+                Log.d("YourActivity", "App was started from the phone");
+            }
+            //app has already opened and i just got a message from the watch
+            else{
+                if (pebbleData == null){
+                    Log.d("YourActivity", "App is already started and just got brought to foreground");
+                    startAppOnClick();
+                }
+                else{
+                    Log.d("YourActivity", "App is already started and just registered a button click from pebble: "+ pebbleData);
+                    interpretPebbleData(Integer.parseInt(pebbleData));
                 }
 
-            };
-            PebbleKit.registerReceivedDataHandler(getApplicationContext(), mDataReceiver);
+            }
+
         }
+        //If app was opened by the watch
+        else{
+            Log.d("YourActivity", "App was started from the pebble watch: " + pebbleOpenAppData);
+            interpretPebbleData(Integer.parseInt(pebbleOpenAppData));
+            pebbleOpenAppData = "";
+            Log.d("YourActivity", "App was started from the pebble watch: " + pebbleOpenAppData);
+        }
+
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         //Check if Bluetooth is Enabled
         if (mBluetoothAdapter == null) {
@@ -108,8 +119,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -289,5 +298,25 @@ public class MainActivity extends AppCompatActivity {
             });
 
         }
+    }
+
+    public void interpretPebbleData(int buttonPressed){
+        switch(buttonPressed){
+            case KEY_BUTTON_UP:
+                textView.setText("Up");
+                break;
+            case KEY_BUTTON_DOWN:
+                textView.setText("Down");
+                if (mMediaPlayer.isPlaying()) {
+                    mMediaPlayer.stop();
+                }
+                v.cancel();
+                break;
+            case KEY_BUTTON_SELECT:
+                textView.setText("Select");
+                forceRing();
+                break;
+        }
+
     }
 }
