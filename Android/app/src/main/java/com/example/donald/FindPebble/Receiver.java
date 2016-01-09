@@ -46,22 +46,27 @@ public class Receiver extends BroadcastReceiver{
                 // do what you need with the data
                 Log.i("Pebble Receiver", "Data Received in receiver" + data.toJsonString());
                 PebbleKit.sendAckToPebble(context, transactionId);
-                Intent activityIntent = new Intent(context,MainActivity.class);
+                Intent activityIntent = new Intent(context,Vibrate.class);;
 
-                activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                activityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
                 String name = "PEBBLE_DATA";
                 String value = "";
                 if(data.getInteger(KEY_BUTTON_UP) != null) {
+                    activityIntent = new Intent(context,MainActivity.class);
                     value = Integer.toString(KEY_BUTTON_UP);
                 }
                 if(data.getInteger(KEY_BUTTON_SELECT) != null) {
+
                     value = Integer.toString(KEY_BUTTON_SELECT);
                 }
                 if(data.getInteger(KEY_BUTTON_DOWN) != null) {
+
                     value = Integer.toString(KEY_BUTTON_DOWN);
+
                 }
+
+                activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                activityIntent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
                 activityIntent.putExtra(name, value);
 
@@ -71,19 +76,6 @@ public class Receiver extends BroadcastReceiver{
             }
         }
     }
-
-//    public boolean isActivityRunning(Context context) {
-//
-//        ActivityManager activityManager = (ActivityManager)context.getSystemService(Context.ACTIVITY_SERVICE);
-//        List<RunningTaskInfo> activitys = activityManager.getRunningTasks(Integer.MAX_VALUE);
-//        boolean isActivityFound = false;
-//        for (int i = 0; i < activitys.size(); i++) {
-//            if (activitys.get(i).topActivity.toString().equalsIgnoreCase("ComponentInfo{com.example.testapp/com.example.testapp.Your_Activity_Name}")) {
-//                isActivityFound = true;
-//            }
-//        }
-//        return isActivityFound;
-//    }
 
 }
 

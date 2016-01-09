@@ -3,15 +3,9 @@ package com.example.donald.FindPebble;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.RingtoneManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -25,7 +19,6 @@ import com.getpebble.android.kit.util.PebbleDictionary;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -33,10 +26,6 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     private static final UUID APP_UUID = UUID.fromString("b19073a4-2b69-4a20-8bf7-3df7d4deed25");
-    private PebbleKit.PebbleDataReceiver mDataReceiver;
-    private static final int KEY_BUTTON_UP = 0;
-    private static final int KEY_BUTTON_SELECT = 1;
-    private static final int KEY_BUTTON_DOWN = 2;
     private static final int RESULT_KEY = 0;
     private static final int START_BUTTON = 0;
     private static final int VIBRATE_BUTTON = 1;
@@ -48,61 +37,12 @@ public class MainActivity extends AppCompatActivity {
     private TextView textView;
 
     private Handler mHandler = new Handler();
-    private Uri alert;
-    private MediaPlayer mMediaPlayer;
-    private AudioManager audioManager;
-    private Vibrator v;
 
-    private String pebbleData;
-    private String pebbleOpenAppData;
-    private Boolean initialOpen = true;
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        Log.d("FindPebble", "onNewIntent called");
-
-        pebbleData = intent.getStringExtra("PEBBLE_DATA");
-        initialOpen = false;
-
-        super.onNewIntent(intent);
-    } // End of onNewIntent(Intent intent)
+    private Context context;
 
     @Override
     protected void onResume(){
         super.onResume();
-        Intent intent = getIntent();
-        if (initialOpen && pebbleData == null){
-            pebbleOpenAppData = intent.getStringExtra("PEBBLE_DATA");
-            Log.d("YourActivity", "openapp: " + pebbleOpenAppData);
-        }
-
-        //If app was opened without watch or if app is still open
-        if (pebbleOpenAppData == null || pebbleOpenAppData.isEmpty()){
-            if (initialOpen){
-                startAppOnClick();
-                Log.d("YourActivity", "App was started from the phone");
-            }
-            //app has already opened and i just got a message from the watch
-            else{
-                if (pebbleData == null){
-                    Log.d("YourActivity", "App is already started and just got brought to foreground");
-                    startAppOnClick();
-                }
-                else{
-                    Log.d("YourActivity", "App is already started and just registered a button click from pebble: "+ pebbleData);
-                    interpretPebbleData(Integer.parseInt(pebbleData));
-                }
-
-            }
-
-        }
-        //If app was opened by the watch
-        else{
-            Log.d("YourActivity", "App was started from the pebble watch: " + pebbleOpenAppData);
-            interpretPebbleData(Integer.parseInt(pebbleOpenAppData));
-            pebbleOpenAppData = "";
-            Log.d("YourActivity", "App was started from the pebble watch: " + pebbleOpenAppData);
-        }
 
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -129,13 +69,7 @@ public class MainActivity extends AppCompatActivity {
         stopButton = (Button) findViewById(R.id.stop_button);
         textView = (TextView)findViewById(R.id.text_view);
 
-        //Ringtone Variables
-        alert = RingtoneManager
-                .getDefaultUri(RingtoneManager.TYPE_RINGTONE);
-        mMediaPlayer = new MediaPlayer();
-
-        audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        context = getApplicationContext();
     }
 
     @Override
@@ -179,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startAppOnClick() {
-        Context context = getApplicationContext();
+//        Context context = getApplicationContext();
 
         if(checkIfConnected()) {
             // Launch the sports app
@@ -207,11 +141,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void findButtonOnClick(View v) {
-        Context context = getApplicationContext();
+//        Context context = getApplicationContext();
 
         if(checkIfConnected()){
 
-            Toast.makeText(context, "Finding Phone", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Finding Pebble Watch", Toast.LENGTH_SHORT).show();
 
             stopButton.setVisibility(View.VISIBLE);
 
@@ -224,7 +158,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void stopButtonOnClick(View v) {
-        Context context = getApplicationContext();
+//        Context context = getApplicationContext();
 
         if(checkIfConnected()){
 
@@ -250,73 +184,4 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void forceRing(){
-        // Start without a delay
-        // Vibrate for 100 milliseconds
-        // Sleep for 1000 milliseconds
-        long[] pattern = {0, 1000, 500};
-        v.vibrate(pattern,0);
-
-        try {
-            mMediaPlayer.reset();
-            mMediaPlayer.setDataSource(this, alert);
-        } catch (IllegalArgumentException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-        if (audioManager.getStreamVolume(AudioManager.STREAM_ALARM) != 0) {
-            int maxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_ALARM);
-            audioManager.setStreamVolume(AudioManager.STREAM_ALARM, maxVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
-            mMediaPlayer.setAudioStreamType(AudioManager.STREAM_ALARM);
-            mMediaPlayer.setLooping(true);
-            audioManager.setMode(AudioManager.MODE_IN_CALL);
-            audioManager.setSpeakerphoneOn(true);
-            try {
-                mMediaPlayer.prepareAsync();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            //mp3 will be started after completion of preparing...
-            mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-
-                @Override
-                public void onPrepared(MediaPlayer player) {
-                    player.start();
-                }
-
-            });
-
-        }
-    }
-
-    public void interpretPebbleData(int buttonPressed){
-        switch(buttonPressed){
-            case KEY_BUTTON_UP:
-                textView.setText("Up");
-                break;
-            case KEY_BUTTON_DOWN:
-                textView.setText("Down");
-                if (mMediaPlayer.isPlaying()) {
-                    mMediaPlayer.stop();
-                }
-                v.cancel();
-                break;
-            case KEY_BUTTON_SELECT:
-                textView.setText("Select");
-                forceRing();
-                break;
-        }
-
-    }
 }
