@@ -112,14 +112,15 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(this, "Notification Sent", Toast.LENGTH_LONG).show();
     }
 
-    public void startAppOnClick() {
-//        Context context = getApplicationContext();
+    public void startAppOnClick(View v) {
 
         if(checkIfConnected()) {
             // Launch the sports app
             PebbleKit.startAppOnPebble(context, APP_UUID);
 
             Toast.makeText(context, "Launching...", Toast.LENGTH_SHORT).show();
+
+            findButton.setVisibility(View.VISIBLE);
 
             findButton.setVisibility(View.VISIBLE);
             notificationButton.setVisibility(View.VISIBLE);
