@@ -9,19 +9,14 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:showIn="@layout/activity_main" tools:context=".MainActivity">
 
-    <TextView android:text="Hello World!" android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/text_view"
-        android:textColor="#ffffff" />
-
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Send Notification"
         android:id="@+id/sendNotification"
         android:onClick="notificationOnClick"
-        android:visibility="visible"
-        android:layout_centerVertical="true"
+        android:visibility="invisible"
+        android:layout_below="@+id/stop_button"
         android:layout_centerHorizontal="true" />
 
     <Button
@@ -31,9 +26,8 @@
         android:id="@+id/find_button"
         android:visibility="invisible"
         android:onClick="findButtonOnClick"
-        android:layout_below="@+id/sendNotification"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="45dp" />
+        android:layout_below="@+id/button2"
+        android:layout_centerHorizontal="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -50,7 +44,19 @@
         android:layout_height="wrap_content"
         android:text="Start App"
         android:id="@+id/button2"
-        android:layout_below="@+id/sendNotification"
+        android:onClick="startAppOnClick"
+        android:layout_below="@+id/textView2"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Welcome to PebbleFind!\nStart off by opening the companion app on the Pebble!"
+        android:id="@+id/textView2"
+        android:layout_marginTop="176dp"
+        android:textColor="#ffffff"
+        android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:onClick="startAppOnClick" />
+        android:textAlignment="center" />
 </RelativeLayout>
